@@ -18,7 +18,8 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         super.viewDidLoad()
         tableView.dataSource = self
         tableView.delegate = self
-        
+    
+        loadDataFromNetwork()
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
         let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
         let request = NSURLRequest(
@@ -44,6 +45,11 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                 }
         })
         task.resume()
+        
+        // Initialize a UIRefreshControl
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: "refreshControlAction:", forControlEvents: UIControlEvents.ValueChanged)
+        tableView.insertSubview(refreshControl, atIndex: 0)
         
         // Do any additional setup after loading the view.
     }
@@ -96,7 +102,10 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
         // ... Create the NSURLRequest (myRequest) ...
         let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
-        let myRequest = NSURLRequest(URL: url!)
+        let myRequest = NSURLRequest(
+            URL: url!,
+            cachePolicy: NSURLRequestCachePolicy.ReloadIgnoringLocalCacheData,
+            timeoutInterval: 10)
         
         // Configure session so that completion handler is executed on main UI thread
         let session = NSURLSession(
@@ -106,7 +115,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         )
         
         // Display HUD right before the request is made
-        MBProgressHUD.showHUDAddedTo(self.tableView, animated: true)
+        MBProgressHUD.showHUDAddedTo(self.view, animated: true)
         
         let task : NSURLSessionDataTask = session.dataTaskWithRequest(myRequest,
             completionHandler: { (data, response, error) in
@@ -120,7 +129,41 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         task.resume()
     }
     
-    
+    // Makes a network request to get updated data
+    // Updates the tableView with the new data
+    // Hides the RefreshControl
+    func refreshControlAction(refreshControl: UIRefreshControl) {
+        
+        // ... Create the NSURLRequest (myRequest) ...
+        let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
+        // ... Create the NSURLRequest (myRequest) ...
+        let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
+        let myRequest = NSURLRequest(
+            URL: url!,
+            cachePolicy: NSURLRequestCachePolicy.ReloadIgnoringLocalCacheData,
+            timeoutInterval: 10)
+
+        
+        // Configure session so that completion handler is executed on main UI thread
+        let session = NSURLSession(
+            configuration: NSURLSessionConfiguration.defaultSessionConfiguration(),
+            delegate:nil,
+            delegateQueue:NSOperationQueue.mainQueue()
+        )
+        
+        let task : NSURLSessionDataTask = session.dataTaskWithRequest(myRequest,
+            completionHandler: { (data, response, error) in
+                
+                // ... Use the new data to update the data source ...
+                
+                // Reload the tableView now that there is new data
+                self.tableView.reloadData()
+                
+                // Tell the refreshControl to stop spinning
+                refreshControl.endRefreshing()	
+        });
+        task.resume()
+    }
     /*
     // MARK: - Navigation
     
