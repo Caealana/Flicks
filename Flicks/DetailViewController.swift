@@ -11,10 +11,11 @@ import UIKit
 class DetailViewController: UIViewController {
 
     @IBOutlet weak var posterImageView: UIImageView!
-    
     @IBOutlet weak var titleLabel: UILabel!
-    
     @IBOutlet weak var overviewLabel: UILabel!
+    @IBOutlet weak var scrollView: UIScrollView!
+    @IBOutlet weak var contentView: UIView!
+    
     
     var movie: NSDictionary!
     
@@ -22,11 +23,18 @@ class DetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        //set area that scroll goes to
+        //width is same as screen width
+        //height is the top left corner of w
+        scrollView.contentSize = CGSize(width: scrollView.frame.size.width, height: contentView.frame.origin.y + contentView.frame.size.height)
+        
         let title = movie["title"] as? String
         titleLabel.text = title
         let overview = movie["overview"]
         overviewLabel.text = overview as? String
         print(movie)
+        overviewLabel.sizeToFit()
+        
         let posterBaseUrl = "http://image.tmdb.org/t/p/w500"
         
         if let posterPath = movie["poster_path"] as? String {
